@@ -1,9 +1,9 @@
 const Router = require('@koa/router');
-const {libConfig}=require("../lib/config")
+const { libConfig } = require("../lib/config")
 
 
 const defaultRouter = new Router({
-    prefix:libConfig.api?.prefix 
+    prefix: libConfig.api?.prefix
 });
 
 
@@ -17,25 +17,7 @@ defaultRouter.get('/ping', (ctx) => {
     // });
 });
 
-defaultRouter.get('/pong', (ctx) => {
-    console.log(`ℹ️ - Ping route: ${Date.now()}`);
-    ctx.body = 'catch all with use';
-    ctx.status = 201;
-    // res.status(200).json({
-    //     message: '✅ - Pong: test successfully'
-    // });
-});
-
-defaultRouter.get('/check', (ctx) => {
-    console.log(`ℹ️ - Ping route: ${Date.now()}`);
-    ctx.body = 'catch all with use';
-    ctx.status = 201;
-    // res.status(200).json({
-    //     message: '✅ - Pong: test successfully'
-    // });
-}); 
-
-// // Catch all route for the ping (only allow get)
+// Catch all route for the ping (only allow get)
 // defaultRouter.all('/ping', (req, res) => {
 //     const code = 405;
 //     return res.status(code).json({
@@ -45,13 +27,16 @@ defaultRouter.get('/check', (ctx) => {
 // });
 
 // // Catch all 404 not found route
-// defaultRouter.all('*', (req, res) => {
-//     const code = 404;
-//     return res.status(code).json({
-//         code,
-//         message: `${req.url} not found`
-//     });
-// });
+defaultRouter.all('/(.*)', (ctx,next) => {
+    console.log("CATCH ALL ROUTES CALLING")
+    const code=404;
+    ctx.status = code;
+    ctx.body = {
+        code,
+        message: `${ctx?.request?.url} not found`
+    }
+    next();
+});
 
-module.exports= defaultRouter
+module.exports = defaultRouter
 

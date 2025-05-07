@@ -3,23 +3,21 @@ const { libConfig } = require("../lib/config")
 
 const defaultRouter = require('./default')
 const userRouter = require('./user')
+const serviceRouter = require('./service')
 
 
 function initializeRoutes(app) {
-    // const router = new Router({
-    //     prefix:libConfig.api?.prefix 
-    //  });
 
     if (libConfig.routes?.user) {
         console.log("user routes calling")
-        console.log(userRouter)
         app.use(userRouter.routes())
             .use(userRouter.allowedMethods());
     }
 
     if (libConfig.routes?.service) {
-        console.log("otp routes calling")
-        // otpRoutes(router);
+        console.log("service routes calling")
+        app.use(serviceRouter.routes())
+            .use(serviceRouter.allowedMethods());
     }
 
     if (libConfig.routes?.default) {
