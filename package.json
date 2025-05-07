@@ -1,0 +1,30 @@
+{
+  "name": "koaapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Koa app basic routes",
+  "license": "ISC",
+  "author": "jai",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "@koa/multer": "^3.1.0",
+    "@koa/router": "^13.1.0",
+    "config": "^3.3.12",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "koa": "^3.0.0",
+    "koa-body": "^6.0.1",
+    "koa-bodyparser": "^4.4.1",
+    "koa-router": "^13.0.1",
+    "koa-static": "^5.0.0",
+    "mongoose": "^8.14.1",
+    "multer": "^1.4.5-lts.2",
+    "path": "^0.12.7"
+  }
+}
