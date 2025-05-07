@@ -1,55 +1,22 @@
-import mongoose from "mongoose";
-import validate from "validate.js";
-
-const constraints = {
-    email: () => ({
-        presence: { allowEmpty: false },
-        email: true
-    }),
-    name: () => {
-
-        const regex = "[\-\'A-Za-z ]+";
-
-        return {
-            presence: { allowEmpty: false },
-            type: 'string',
-            format: {
-                pattern: regex,
-                flags: 'i'
-            }
-        };
-    }
-}
+const mongoose = require("mongoose");
+const Joi = require('joi');
 
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
-
-    firstName: {
+    first_name: {
         type: String,
         required: true,
-        validate: {
-            validator: name => !validate.single(name, constraints.name),
-            message: props => `${props.value} is not a valid first name`
-        }
     },
-    lastName: {
+    last_name: {
         type: String,
         required: true,
-        validate: {
-            validator: name => !validate.single(name, constraints.name),
-            message: props => `${props.value} is not a valid last name`
-        }
     }
     ,
     email: {
         type: String,
         required: true,
         unique: true,
-        validate: {
-            validator: email => !validate.single(email, constraints.email),
-            message: props => `${props.value} is not a valid email address`
-        }
     },
     created: Number,
     updated: Number,
@@ -71,4 +38,22 @@ UserSchema.pre('findOneAndUpdate', function (next) {
     if (next) next();
 });
 
-export const User = mongoose.model('User', UserSchema);
+
+function validateUser(user) {
+    const schema = Joi.object({
+        first_name: Joi.string().min(1).max(50).
+            // .regex(/^[a-zA-Z0-9()'*#^$@ _.\s-]*$/).
+            required().messages({
+                "string.base": `name should be a type of string`,
+                "string.pattern.base": `name should contain only letters,numbers and $,@,*,^,#.`,
+                "string.min": `name should be  at least 1 characters long.`,
+                "string.max": `name should not be greater than 50 characters.`,
+                "string.empty": `name must contain a value.`,
+                "any.required": `name is a required.`
+            }),
+    })
+    return schema.validate(user, {abortEarly: false,allowUnknown:true})
+}
+
+module.exports.User = mongoose.model('User', UserSchema);
+module.exports.validateUser =validateUser;
