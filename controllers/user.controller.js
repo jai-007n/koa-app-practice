@@ -1,19 +1,19 @@
-const { User,validateUser } = require('../database/models/User');
+const { User, validateUser } = require('../database/models/User');
 const _ = require('lodash');
-const {errorBag} = require('../lib/helpers');
-const { updateServicePhoto } = require('./servicePhoto.controller');
+const { errorBag } = require('../lib/helpers');
+const bcrypt = require('bcryptjs');
 
 async function createUser(ctx) {
 
     let { error } = validateUser(ctx.request.body);
     if (error) {
-        ctx.status=422;
-        ctx.body=errorBag(error);
+        ctx.status = 422;
+        ctx.body = errorBag(error);
         return ctx
     }
-    
+
     try {
-        let sendResult = _.pick(ctx.request.body, ['first_name','last_name','email'])
+        let sendResult = _.pick(ctx.request.body, ['first_name', 'last_name', 'email', 'password'])
         let user = new User(sendResult);
         user = await user.save();
 
@@ -26,11 +26,11 @@ async function createUser(ctx) {
 
 
     } catch (ex) {
-        return ctx.body={
+        return ctx.body = {
             status: false,
             code: 400,
             message: ex.message,
-         
+
         }
     }
 }
@@ -38,20 +38,20 @@ async function createUser(ctx) {
 async function getUser(ctx) {
     const result = await User.findById(ctx.params.id)
 
-    if (!result) return ctx.body={
+    if (!result) return ctx.body = {
         status: false,
         code: 404,
         message: "The User with the given ID was not found.",
     };
     try {
-        ctx.body={
+        ctx.body = {
             status: true,
             code: 200,
             message: "User fetche",
             user: result
         };
     } catch (ex) {
-        ctx.body=={
+        ctx.body == {
             status: false,
             code: 500,
             message: ex.message,
@@ -63,20 +63,20 @@ async function getUser(ctx) {
 async function deleteUser(ctx) {
     try {
         const result = await User.findByIdAndDelete(ctx.params.id)
-        if (!result) return ctx.body={
+        if (!result) return ctx.body = {
             status: false,
             code: 404,
             message: "The User name with the given ID was not found.",
         };
 
-        return ctx.body={
+        return ctx.body = {
             status: true,
             code: 200,
             message: "user deleted",
             user: result
         };
     } catch (ex) {
-        return ctx.body={
+        return ctx.body = {
             status: true,
             code: 500,
             message: ex.message,
@@ -87,16 +87,24 @@ async function deleteUser(ctx) {
 async function updateUser(ctx) {
     let { error } = validateUser(ctx.request.body);
     if (error) {
-        ctx.status=422;
-        ctx.body=errorBag(error);
+        ctx.status = 422;
+        ctx.body = errorBag(error);
         return ctx
     }
 
     try {
-        let sendResult = _.pick(ctx.request.body, ['first_name','last_name','email'])
-        const user = await User.findByIdAndUpdate(ctx.params.id, {
+        let sendResult = _.pick(ctx.request.body, ['first_name', 'last_name', 'email'])
+        let user = await User.findByIdAndUpdate(ctx.params.id, {
             $set: sendResult
-        }, { new: true })
+        }, { new: true, select: "+password" })
+        const newPassword = ctx.request.body?.password
+        if (newPassword) {
+            let validPassword = await bcrypt.compare(newPassword, user.password);
+            if (!validPassword) {
+                user.password = ctx.request.body.password;
+                user.save();
+            }
+        }
 
         return ctx.body = {
             status: true,
@@ -105,11 +113,11 @@ async function updateUser(ctx) {
             user: user
         }
     } catch (ex) {
-        return ctx.body={
+        return ctx.body = {
             status: false,
             code: 500,
             message: ex.message,
-          
+
         }
     }
 
@@ -122,7 +130,7 @@ async function listAllUser(ctx) {
     const skip = Number((pageNumber - 1) * pageSize)
     let totalCount = 1
 
-   
+
     try {
         let queryTry = User.find();
         let countDocuments = User.countDocuments({});
@@ -140,8 +148,8 @@ async function listAllUser(ctx) {
 
         totalCount = await countDocuments
         const result = await queryTry
-       
-       return ctx.body={
+
+        return ctx.body = {
             status: true,
             code: 200,
             count: result.length,
@@ -150,11 +158,11 @@ async function listAllUser(ctx) {
             totalPages: Math.ceil(totalCount / pageSize)
         };
     } catch (ex) {
-       return ctx.body={
+        return ctx.body = {
             status: false,
             code: 400,
             message: ex.message,
-         
+
         };
     }
 }

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require('joi');
-
+const bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -18,20 +18,41 @@ const UserSchema = new Schema({
         required: true,
         unique: true,
     },
+    password: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 1024,
+        select:false
+    },
     created: Number,
     updated: Number,
     active: { type: Boolean, default: true },
+},{
+    toJSON: {
+        transform: function (doc, ret) {
+          delete ret.password;
+          return ret;
+        }
+      }
 });
 
-UserSchema.pre('save', function (next) {
+UserSchema.pre('save', async function (next) {
     const now = Date.now();
     const doc = this;
     doc.updated = now
     if (!doc.created) {
         doc.created = now;
     }
+    doc.password = await encryptPassword(doc);
+  
     if (next) next();
 });
+
+async function encryptPassword(doc) {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(doc.password, salt);
+}
 
 UserSchema.pre('findOneAndUpdate', function (next) {
     this.set({ updated: Date.now() })
@@ -52,8 +73,8 @@ function validateUser(user) {
                 "any.required": `name is a required.`
             }),
     })
-    return schema.validate(user, {abortEarly: false,allowUnknown:true})
+    return schema.validate(user, { abortEarly: false, allowUnknown: true })
 }
 
 module.exports.User = mongoose.model('User', UserSchema);
-module.exports.validateUser =validateUser;
+module.exports.validateUser = validateUser;
