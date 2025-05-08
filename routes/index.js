@@ -3,11 +3,20 @@ const { libConfig } = require("../lib/config")
 
 const defaultRouter = require('./default')
 const userRouter = require('./user')
+const authRouter = require('./auth')
 const serviceRouter = require('./service')
 const servicePhotoRouter = require('./servicePhoto')
 
 
 function initializeRoutes(app) {
+
+
+    if (libConfig.routes?.auth) {
+        console.log("auth routes calling")
+        app.use(authRouter.routes())
+            .use(authRouter.allowedMethods());
+    }
+
 
     if (libConfig.routes?.user) {
         console.log("user routes calling")

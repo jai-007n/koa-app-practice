@@ -36,22 +36,30 @@ async function createUser(ctx) {
 }
 
 async function getUser(ctx) {
-    const result = await User.findById(ctx.params.id)
 
-    if (!result) return ctx.body = {
-        status: false,
-        code: 404,
-        message: "The User with the given ID was not found.",
-    };
+   
+
     try {
-        ctx.body = {
+      
+    
+        const result = await User.findById(ctx.params.id)
+        ctx.status=200
+        return ctx.body = {
             status: true,
             code: 200,
-            message: "User fetche",
+            message: "User fetched",
             user: result
         };
+        if (!result) return ctx.body = {
+            status: false,
+            code: 404,
+            message: "The User with the given ID was not found.",
+        };
+        
+
     } catch (ex) {
-        ctx.body == {
+        ctx.status=500
+        return ctx.body = {
             status: false,
             code: 500,
             message: ex.message,
